@@ -10,6 +10,74 @@ Designed specifically for iOS, Echo delivers a native Apple experience with smoo
 
 ---
 
+# Why Echo?
+
+* **Single Elegant Rule** — No arbitrary mechanics. One principle governs every puzzle.
+* **No Timers, No Pressure** — Solve at your own pace. Focus on deduction, not speed.
+* **Intuitive Physics** — Play with ripples, shadows, heat, gravity, and sound—not arbitrary symbols.
+* **Rewarding Difficulty Curve** — Early puzzles teach. Later ones challenge your perception.
+
+---
+
+# How It Works
+
+**Ripple World Example:**
+You tap the screen. Expanding circles appear. By observing where the ripples converge, you locate the hidden object.
+
+**Shadow World Example:**
+A silhouette rotates on the screen. You tilt and observe. The shape reveals its identity through perspective.
+
+---
+
+# A Living, Responsive Game
+
+Echo isn't just visual. It feels alive:
+
+* **Touch** creates immediate feedback
+* **Motion sensors** respond to your physical movement
+* **Haptics** tap back at you
+* **Carefully composed audio** guides your deduction
+
+The game adapts to how you hold your phone.
+
+---
+
+# The Appeal
+
+Perfect for those who enjoy:
+
+* Logic puzzles and pattern recognition
+* Physics-based games (Portal, Baba Is You)
+* Meditative, pressure-free gaming
+* Beautiful minimalist design
+* Games that respect their time and privacy
+
+---
+
+# Learn. Master. Discover.
+
+* **Worlds Build on Each Other** — Each new world introduces a fresh sensory challenge
+* **Stars Track Your Progress** — 3-star system encourages optimization and replay
+* **Hints, Not Solutions** — Get unstuck without spoiling the "aha!" moment
+* **Secret Levels** — Some worlds unlock only under special conditions
+
+---
+
+# For Fans Of
+
+If you love *The Witness*, *Portal*, *Monument Valley*, or *Baba Is You* — you'll recognize the philosophy here: elegant rules, infinite possibilities.
+
+---
+
+# Design Philosophy
+
+* **Offline First** — Your device, your data, your rules
+* **No Dark Patterns** — No energy systems, no ads, no FOMO
+* **Respect Your Time** — Play for 2 minutes or 2 hours. You decide.
+* **Pure Deduction** — Every puzzle has one elegant solution
+
+---
+
 # Features
 
 ## Core Gameplay
