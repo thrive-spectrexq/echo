@@ -297,7 +297,7 @@ echo/
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/echo.git
+git clone https://github.com/thrive-spectrexq/echo.git
 
 cd echo
 ```
