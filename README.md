@@ -727,4 +727,4 @@ Code style: Prettier defaults, enforced via pre-commit hook (`husky` + `lint-sta
 
 ## License
 
-MIT © Echo Contributors
+MIT
