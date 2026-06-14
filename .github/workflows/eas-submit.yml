@@ -1,0 +1,51 @@
+# Echo — EAS Submit to App Store
+# Submits a completed EAS build to App Store Connect / TestFlight.
+# Triggered manually after a successful build.
+
+name: EAS Submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to submit'
+        required: true
+        default: 'ios'
+        type: choice
+        options:
+          - ios
+
+jobs:
+  submit:
+    name: Submit to App Store Connect
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Expo CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Submit to App Store Connect
+        run: |
+          eas submit \
+            --platform ${{ github.event.inputs.platform }} \
+            --latest \
+            --non-interactive
+        env:
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+          EXPO_APPLE_PASSWORD: ${{ secrets.EXPO_APPLE_PASSWORD }}

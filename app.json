@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Echo",
+    "slug": "echo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "echo",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A1A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.thrivespectrexq.echo",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSMotionUsageDescription": "Echo uses motion sensors for gravity-based puzzles.",
+        "NSMicrophoneUsageDescription": "Echo uses the microphone for resonance-based puzzles."
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-haptics",
+      "expo-sensors",
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0A0A1A",
+          "image": "./assets/images/splash.png",
+          "imageWidth": 200
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
