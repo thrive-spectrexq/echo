@@ -6,155 +6,109 @@
  */
 
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
-import type { WorldId, LevelProgress, PlayerStats } from '@/app/types';
-import { WORLD_CONFIGS, WORLD_ORDER } from '@/app/theme/tokens';
+import { getLevelProgress, saveLevelProgress, unlockWorld, isWorldUnlocked } from '@/app/systems';
+import { WORLD_CONFIGS } from '@/app/theme/tokens';
 
 // ─── State ───────────────────────────────────────────────────
 
 interface ProgressState {
-  completedLevels: Record<string, LevelProgress>;
-  totalStars: number;
-  stats: PlayerStats;
-  isLoaded: boolean;
+  isHydrated: boolean;
+  hasSeenOnboarding: boolean;
+  unlockedWorlds: string[];
+  completedLevels: Record<string, string[]>; // worldId -> levelIds
+  stars: Record<string, number>; // levelId -> stars
+  
+  
+  hydrate: () => Promise<void>;
+  setHasSeenOnboarding: (value: boolean) => void;
+  completeLevel: (worldId: string, levelId: string, earnedStars: number) => Promise<void>;
+  unlockNextWorld: (currentWorldId: string) => Promise<void>;
 }
-
-// ─── Actions ─────────────────────────────────────────────────
-
-interface ProgressActions {
-  completeLevel: (progress: LevelProgress) => void;
-  getWorldProgress: (worldId: WorldId) => {
-    completed: number;
-    total: number;
-    stars: number;
-    maxStars: number;
-  };
-  isWorldUnlocked: (worldId: WorldId) => boolean;
-  isLevelUnlocked: (worldId: WorldId, levelId: number) => boolean;
-  getLevelProgress: (worldId: WorldId, levelId: number) => LevelProgress | null;
-  loadProgress: (levels: LevelProgress[]) => void;
-  resetProgress: () => void;
-}
-
-type ProgressStore = ProgressState & ProgressActions;
-
-// ─── Helpers ─────────────────────────────────────────────────
-
-function makeLevelKey(worldId: WorldId, levelId: number): string {
-  return `${worldId}:${levelId}`;
-}
-
-function calculateTotalStars(levels: Record<string, LevelProgress>): number {
-  return Object.values(levels).reduce((sum, l) => sum + l.stars, 0);
-}
-
-function calculateStats(levels: Record<string, LevelProgress>): PlayerStats {
-  const completed = Object.values(levels).filter((l) => l.completed);
-  return {
-    totalStars: completed.reduce((sum, l) => sum + l.stars, 0),
-    levelsCompleted: completed.length,
-    totalAttempts: completed.reduce((sum, l) => sum + l.bestAttempts, 0),
-    totalPlayTime: completed.reduce((sum, l) => sum + l.bestTime, 0),
-    hintsUsed: completed.filter((l) => l.hintUsed).length,
-    perfectLevels: completed.filter((l) => l.stars === 3).length,
-    longestStreak: 0, // TODO: calculate from completion dates
-    currentStreak: 0,
-  };
-}
-
-// ─── Initial State ───────────────────────────────────────────
-
-const initialState: ProgressState = {
-  completedLevels: {},
-  totalStars: 0,
-  stats: {
-    totalStars: 0,
-    levelsCompleted: 0,
-    totalAttempts: 0,
-    totalPlayTime: 0,
-    hintsUsed: 0,
-    perfectLevels: 0,
-    longestStreak: 0,
-    currentStreak: 0,
-  },
-  isLoaded: false,
-};
 
 // ─── Store ───────────────────────────────────────────────────
 
-export const useProgressStore = create<ProgressStore>()(
-  subscribeWithSelector((set, get) => ({
-    ...initialState,
+export const useProgressStore = create<ProgressState>((set, get) => ({
+  isHydrated: false,
+  hasSeenOnboarding: false,
+  unlockedWorlds: ['ripple'], // Default unlocked
+  completedLevels: {},
+  stars: {},
 
-    completeLevel: (progress) => {
-      const key = makeLevelKey(progress.worldId, progress.levelId);
-      const existing = get().completedLevels[key];
+  hydrate: async () => {
+    // Basic hydration strategy: Load all worlds and levels from SQLite
+    // In a real app, you might do this per-world to save memory
+    let seenOnboarding = false;
+    const unlocked: string[] = ['ripple'];
+    const completed: Record<string, string[]> = {};
+    const starsObj: Record<string, number> = {};
 
-      // Only update if this is a new completion or a better score
-      const updated: LevelProgress =
-        existing && existing.stars >= progress.stars
-          ? {
-              ...existing,
-              bestAttempts: Math.min(existing.bestAttempts, progress.bestAttempts),
-              bestTime: Math.min(existing.bestTime, progress.bestTime),
-            }
-          : progress;
-
-      set((state) => {
-        const newLevels = { ...state.completedLevels, [key]: updated };
-        return {
-          completedLevels: newLevels,
-          totalStars: calculateTotalStars(newLevels),
-          stats: calculateStats(newLevels),
-        };
-      });
-    },
-
-    getWorldProgress: (worldId) => {
-      const config = WORLD_CONFIGS[worldId];
-      const levels = Object.values(get().completedLevels).filter(
-        (l) => l.worldId === worldId
-      );
-      return {
-        completed: levels.filter((l) => l.completed).length,
-        total: config?.totalLevels ?? 0,
-        stars: levels.reduce((sum, l) => sum + l.stars, 0),
-        maxStars: (config?.totalLevels ?? 0) * 3,
-      };
-    },
-
-    isWorldUnlocked: (worldId) => {
-      const config = WORLD_CONFIGS[worldId];
-      if (!config) return false;
-      return get().totalStars >= config.unlockRequirement;
-    },
-
-    isLevelUnlocked: (worldId, levelId) => {
-      if (!get().isWorldUnlocked(worldId)) return false;
-      if (levelId === 1) return true; // first level always unlocked
-      // Previous level must be completed
-      const prevKey = makeLevelKey(worldId, levelId - 1);
-      return get().completedLevels[prevKey]?.completed ?? false;
-    },
-
-    getLevelProgress: (worldId, levelId) => {
-      const key = makeLevelKey(worldId, levelId);
-      return get().completedLevels[key] ?? null;
-    },
-
-    loadProgress: (levels) => {
-      const map: Record<string, LevelProgress> = {};
-      for (const l of levels) {
-        map[makeLevelKey(l.worldId, l.levelId)] = l;
+    for (const worldId of Object.keys(WORLD_CONFIGS)) {
+      if (await isWorldUnlocked(worldId)) {
+        if (!unlocked.includes(worldId)) unlocked.push(worldId);
       }
-      set({
-        completedLevels: map,
-        totalStars: calculateTotalStars(map),
-        stats: calculateStats(map),
-        isLoaded: true,
-      });
-    },
 
-    resetProgress: () => set({ ...initialState, isLoaded: true }),
-  }))
-);
+      const levels = await getLevelProgress(worldId);
+      completed[worldId] = [];
+      levels.forEach((l) => {
+        if (l.status === 'completed') {
+          completed[worldId].push(l.id);
+        }
+        starsObj[l.id] = l.stars;
+      });
+    }
+
+    set({
+      isHydrated: true,
+      hasSeenOnboarding: seenOnboarding,
+      unlockedWorlds: unlocked,
+      completedLevels: completed,
+      stars: starsObj,
+    });
+  },
+
+  setHasSeenOnboarding: (value: boolean) => {
+    // TODO: Write to MMKV instead of SQLite for simple flags
+    set({ hasSeenOnboarding: value });
+  },
+
+  completeLevel: async (worldId, levelId, earnedStars) => {
+    // 1. Save to SQLite
+    await saveLevelProgress(levelId, worldId, 'completed', earnedStars, 1, null);
+
+    // 2. Update Zustand memory
+    set((state) => {
+      const worldLevels = state.completedLevels[worldId] || [];
+      const isAlreadyCompleted = worldLevels.includes(levelId);
+      const currentStars = state.stars[levelId] || 0;
+
+      return {
+        completedLevels: {
+          ...state.completedLevels,
+          [worldId]: isAlreadyCompleted ? worldLevels : [...worldLevels, levelId],
+        },
+        stars: {
+          ...state.stars,
+          [levelId]: Math.max(currentStars, earnedStars),
+        },
+      };
+    });
+  },
+
+  unlockNextWorld: async (currentWorldId) => {
+    const worldIds = Object.keys(WORLD_CONFIGS);
+    const currentIndex = worldIds.indexOf(currentWorldId);
+    
+    if (currentIndex !== -1 && currentIndex < worldIds.length - 1) {
+      const nextWorld = worldIds[currentIndex + 1];
+      
+      // 1. Save to SQLite
+      await unlockWorld(nextWorld);
+
+      // 2. Update Zustand memory
+      set((state) => {
+        if (state.unlockedWorlds.includes(nextWorld)) return state;
+        return { unlockedWorlds: [...state.unlockedWorlds, nextWorld] };
+      });
+    }
+  },
+}));

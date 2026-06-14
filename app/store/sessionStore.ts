@@ -6,7 +6,8 @@
  */
 
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { WorldId, PuzzleState, HiddenObject, Point, LevelConfig } from '@/app/types';
 
 // ─── State ───────────────────────────────────────────────────
@@ -40,10 +41,11 @@ function distanceBetween(a: Point, b: Point): number {
 // ─── Store ───────────────────────────────────────────────────
 
 export const useSessionStore = create<SessionStore>()(
-  subscribeWithSelector((set, get) => ({
-    activePuzzle: null,
-    isPaused: false,
-    elapsedTime: 0,
+  persist(
+    (set, get) => ({
+      activePuzzle: null,
+      isPaused: false,
+      elapsedTime: 0,
 
     startPuzzle: (config, objects) => {
       set({
@@ -149,5 +151,10 @@ export const useSessionStore = create<SessionStore>()(
         isPaused: false,
         elapsedTime: 0,
       }),
-  }))
+    }),
+    {
+      name: 'session-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
 );

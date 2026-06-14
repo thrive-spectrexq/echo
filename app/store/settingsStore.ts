@@ -1,11 +1,12 @@
 /**
  * Echo — Settings Store
  *
- * User preferences persisted via MMKV for instant access.
+ * User preferences persisted via AsyncStorage for instant access.
  */
 
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppSettings } from '@/app/types';
 
 // ─── State ───────────────────────────────────────────────────
@@ -40,23 +41,6 @@ const defaultSettings: AppSettings = {
 // ─── Store ───────────────────────────────────────────────────
 
 export const useSettingsStore = create<SettingsStore>()(
-  subscribeWithSelector((set) => ({
-    settings: { ...defaultSettings },
-    isLoaded: false,
-
-    updateSetting: (key, value) => {
-      set((state) => ({
-        settings: { ...state.settings, [key]: value },
-      }));
-      // TODO: persist to MMKV
-    },
-
-    loadSettings: (partial) => {
-      set((state) => ({
-        settings: { ...defaultSettings, ...partial },
-        isLoaded: true,
-      }));
-    },
 
     resetSettings: () => {
       set({

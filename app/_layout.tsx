@@ -21,11 +21,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
-    // Hide splash after a brief delay for smooth transition
-    const timer = setTimeout(() => {
-      SplashScreen.hideAsync();
-    }, 500);
-    return () => clearTimeout(timer);
+    // Splash screen hiding is handled by app/index.tsx after state hydration
   }, []);
 
   return (

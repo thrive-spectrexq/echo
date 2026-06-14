@@ -21,15 +21,13 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSMotionUsageDescription": "Echo uses motion sensors for gravity-based puzzles.",
-        "NSMicrophoneUsageDescription": "Echo uses the microphone for resonance-based puzzles."
+        "NSMicrophoneUsageDescription": "Echo uses the microphone for resonance-based puzzles.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-haptics",
-      "expo-sensors",
-      "expo-sqlite",
       [
         "expo-splash-screen",
         {
@@ -41,6 +39,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "99081fb0-eb57-4682-a644-164b1ffe004b"
+      }
     }
   }
 }
